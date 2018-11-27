@@ -28,6 +28,15 @@ export const store = new Vuex.Store({
 		},
 		setQuestions(state, val) {
 			state.questions = val;
+		},
+		initializeStore(state) {
+			// Check if the ID exists
+			if (localStorage.getItem('store')) {
+				// Replace the state object with the stored item
+				this.replaceState(
+					Object.assign(state, JSON.parse(localStorage.getItem('store')))
+				);
+			}
 		}
 	},
 	actions: {
@@ -51,4 +60,9 @@ export const store = new Vuex.Store({
 			});
 		}
 	}
+});
+
+store.subscribe((mutation, state) => {
+	// Store the state object as a JSON string
+	localStorage.setItem('store', JSON.stringify(state));
 });

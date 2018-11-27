@@ -18,4 +18,12 @@ Vue.config.productionTip = false;
 
 const router = new VueRouter({routes: routes, mode: 'history'});
 
-new Vue({ el: '#app', store: store, router: router, render: h => h(App) });
+new Vue({
+    el: '#app', 
+    store: store, 
+    beforeCreate() {
+        this.$store.commit('initializeStore');
+    },
+    router: router, 
+    render: h => h(App) 
+});
