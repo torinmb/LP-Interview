@@ -1,20 +1,25 @@
 import firebase from 'firebase/app';
-// import { database } from '@firebase/database';
 
 import Vue from 'vue';
 import Vuex from 'vuex';
 
 Vue.use(Vuex);
-// const db = firebase.database();
 
 export const store = new Vuex.Store({
 
 	state: {
 		questions: [],
+		currentQuestionIndex: 0,
 		tokens: {},
 		loading : false
 	},
 	getters: {
+		getCurrentQuestion: state => {
+			if (state.questions.length > state.currentQuestionIndex && state.currentQuestionIndex != -1) {
+				return state.questions[state.currentQuestionIndex];
+			}
+			return null;
+		},
 		getQuestions: state => {
 			return state.questions;
 		},
@@ -26,8 +31,21 @@ export const store = new Vuex.Store({
 		setLoading(state, val) {
 			state.loading = val;
 		},
+		setCurrentQuestionIndex(state, val) {
+			state.currentQuestionIndex = val;
+		},
 		setQuestions(state, val) {
 			state.questions = val;
+		},
+		restart(state) {
+			state.currentQuestionIndex = 0;
+		},
+		nextQuestion(state) {
+			if (state.questions.length > state.currentQuestionIndex +1) {
+				state.currentQuestionIndex += 1;
+			} else {
+				state.currentQuestionIndex = -1;
+			}
 		},
 		initializeStore(state) {
 			// Check if the ID exists

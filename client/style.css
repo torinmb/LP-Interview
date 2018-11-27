@@ -14,3 +14,7 @@ textarea:focus,
 button:focus {
   outline: none;
 }
+button {
+  -webkit-appearance: none;
+  border: 2px solid black;
+}
