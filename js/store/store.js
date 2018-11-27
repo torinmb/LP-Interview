@@ -37,9 +37,8 @@ export const store = new Vuex.Store({
 				firebase.database().ref('questions').once('value').then(data => {
 					const questionDict = data.val();
 					if (questionDict) {
-						console.log(questionDict);
-						// let questions = Object.keys(questionDict).map(key => questionDict[key]);
-						commit('setQuestions', [questionDict]);
+						let questions = Object.keys(questionDict).map(key => questionDict[key]);
+						commit('setQuestions', questions);
 						commit('setLoading', false);
 						resolve();
 					}

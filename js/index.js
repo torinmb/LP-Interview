@@ -10,13 +10,12 @@ import {store} from './store/store';
 
 firebase.initializeApp(dbConfig);
 
-window.db = firebase.database().ref();
+window.db = firebase.database();
+
 Vue.use(VueRouter);
 Vue.config.devtools = true;
 Vue.config.productionTip = false;
-  
 
 const router = new VueRouter({routes: routes, mode: 'history'});
 
 new Vue({ el: '#app', store: store, router: router, render: h => h(App) });
-
