@@ -1,6 +1,6 @@
 {
   "name": "lp-interview",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "main": "js/index.js",
   "browser": {
@@ -8,7 +8,7 @@
   },
   "gcloud": {
     "id": "lp-interview",
-    "version": "0.0.0",
+    "version": 1,
     "devPort": 3000,
     "devAdminPort": 8000
   },

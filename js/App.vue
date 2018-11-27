@@ -25,6 +25,9 @@ export default {
 		}
 	},
 	created() {
+		this.$store.dispatch('fetchQuestions').then((data) => {
+			console.log(this.$store.getters.getQuestions);
+		})
 	// when the app is created run the set user method
 	// this uses Vuex to check if a user is signed in
 	// check out mutations in the store.js file

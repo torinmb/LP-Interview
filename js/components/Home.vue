@@ -11,9 +11,6 @@ export default {
 		}
 	},
 	mounted() {
-		this.$store.dispatch('fetchQuestions').then((data) => {
-			console.log(this.$store.getters.getQuestions);
-		})
 		console.log('mounted');
 	},
 	destroyed() {
