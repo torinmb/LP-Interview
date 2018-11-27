@@ -1,0 +1,5 @@
+**/*.swp
+node_modules
+js/dbConfig.js
+yarn-error.log
+client/bundle.js
