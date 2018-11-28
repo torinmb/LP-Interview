@@ -17,8 +17,11 @@ let questions = [{
         token5: 1
     }
 }];
+
+const tokens = ['token1', 'token2', 'token3', 'token4', 'token5'];
 //reset db
 db.ref('questions').remove().catch(error => console.error(error));
+db.ref('tokens').set(tokens);
 // db.ref('questions').set(questions);
 let questionsRef = db.ref('questions');
 questions.forEach(question => {

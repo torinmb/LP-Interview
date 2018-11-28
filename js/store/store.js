@@ -24,7 +24,7 @@ export const store = new Vuex.Store({
 			return state.questions;
 		},
 		getTokens: state => {
-			return state.getTokens;
+			return state.tokens;
 		}
 	},
 	mutations: {
@@ -37,11 +37,36 @@ export const store = new Vuex.Store({
 		setQuestions(state, val) {
 			state.questions = val;
 		},
+		setTokens(state, tokens) {
+			let stateTokens = Object.keys(state.tokens);
+			tokens.forEach(token => {
+				if (!(token in stateTokens)) {
+					state.tokens[token] = 0;
+				}
+			});
+		},
 		restart(state) {
 			state.currentQuestionIndex = 0;
+			if(state.tokens) {
+				Object.keys(state.tokens).forEach(title => {
+					state.tokens[title] = 0;
+				});
+			}
 		},
-		nextQuestion(state) {
-			if (state.questions.length > state.currentQuestionIndex +1) {
+		nextQuestion(state, userResponse) {
+			const currentTokens = state.questions[state.currentQuestionIndex].tokens;
+			Object.keys(currentTokens).forEach(token => {
+				//set increment value to positive or negative depending on the user's question response
+				const incrementValue = currentTokens[token] * (userResponse ? 1 : -1);
+				//set token key if it doesn't exist in state
+				if(!(token in Object.keys(state.tokens))) {
+					state.tokens[token] = incrementValue;
+				} else {
+					state.tokens[token] += incrementValue;
+				}
+			});
+			
+			if (state.questions.length > state.currentQuestionIndex + 1) {
 				state.currentQuestionIndex += 1;
 			} else {
 				state.currentQuestionIndex = -1;
@@ -58,17 +83,30 @@ export const store = new Vuex.Store({
 		}
 	},
 	actions: {
-		fetchQuestions({commit, getters}) {
+		refreshQuestions({commit, dispatch, getters}) {
+			return dispatch('fetchOnce', 'questions').then((questions) => {
+				if (questions) {
+					commit('setQuestions', questions);
+					return questions;
+				}
+			});
+		},
+		refreshTokens({commit, dispatch}) {
+			return dispatch('fetchOnce', 'tokens').then((tokens) => {
+				if (tokens) {
+					commit('setTokens', tokens);
+					return tokens;
+				}
+			});
+		},
+		fetchOnce({commit}, path) {
 			return new Promise(function (resolve, reject) {
 				commit('setLoading', true);
-				firebase.database().ref('questions').once('value').then(data => {
-					const questionDict = data.val();
-					if (questionDict) {
-						let questions = Object.keys(questionDict).map(key => questionDict[key]);
-						commit('setQuestions', questions);
-						commit('setLoading', false);
-						resolve();
-					}
+				firebase.database().ref(path).once('value').then(fbRef => {
+					const data = fbRef.val();
+					let output = Object.keys(data).map(key => data[key]);
+					commit('setLoading', false);
+					resolve(output);
 				})
 				.catch(error => {
 					console.error(error);
