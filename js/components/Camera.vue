@@ -1,0 +1,90 @@
+<template>
+    <div>
+        <div class="camera">
+            <video style="display: none;" ref="video">Video stream not available.</video>
+            <button @click.stop="captureImage" ref="startbutton">Take photo</button>
+        </div>
+        <canvas style="display: none;" ref="canvas"></canvas>
+        <img ref="photo" alt="The screen capture will appear in this box.">
+    </div>
+</template>
+
+<script>
+
+export default {
+	data: function() {
+		return {
+            width: 320,
+            height: 0,
+            streaming: false
+		}
+	},
+	mounted() {
+        
+        this.$nextTick(function () {
+            const videoEl = this.$refs.video;
+            const canvasEl = this.$refs.canvas;
+            console.log(canvasEl);
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function(stream) {
+                videoEl.srcObject = stream;
+                videoEl.play();
+            })
+            .catch(function(err) {
+                console.error("An error occurred! " + err);
+            });
+
+            videoEl.addEventListener('canplay', (ev) => {
+                if (!this.streaming) {
+                    this.height = videoEl.videoHeight / (videoEl.videoWidth/this.width);
+                    videoEl.setAttribute('width', this.width);
+                    videoEl.setAttribute('height', this.height);
+                    canvasEl.setAttribute('width', this.width);
+                    canvasEl.setAttribute('height', this.height);
+                    console.log(this.width)
+                    console.log(this.height)
+                    this.streaming = true;
+                }
+            }, false);
+
+        });
+        console.log('mounted');
+	},
+	computed: {
+		currentQuestion() {
+			return this.$store.getters.getCurrentQuestion;
+		}
+	},
+	methods: {
+		captureImage() {
+            let canvasEl = this.$refs.canvas;
+            
+            const videoEl = this.$refs.video;
+
+            let context = canvasEl.getContext('2d');
+            if (this.width && this.height) {
+                canvasEl.width = this.width;
+                canvasEl.height = this.height;
+                context.drawImage(videoEl, 0, 0, this.width, this.height);
+                let data = canvasEl.toDataURL('image/png');
+                this.$refs.photo.setAttribute('src', data);
+            } else {
+                this.clearImage();
+            }
+        },
+        clearImage() {
+            let canvasEl = this.$refs.canvas;
+            let context = canvasEl.getContext('2d');
+            context.fillStyle = "#AAA";
+            context.fillRect(0, 0, canvasEl.width, canvasEl.height);
+            let data = canvasEl.toDataURL('image/png');
+            this.$refs.photo.setAttribute('src', data);
+        }
+
+	},
+	destroyed() {
+        this.$refs.video.removeEventListener('canplay', (data) => console.log(data));
+		console.log('destroyed');
+	}
+};
+</script>

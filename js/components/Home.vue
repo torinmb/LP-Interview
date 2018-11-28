@@ -6,6 +6,7 @@
 		<br/>
 		<span>Tokens: {{tokens}} </span>
 		<br/>
+		<camera></camera>
 		<button v-if="questionIndex != -1" @click="nextQuestion(false)">No</button>
 		<button v-if="questionIndex != -1" @click="nextQuestion(true)">Yes</button>
 		<br/>
@@ -14,8 +15,13 @@
 </template>
 
 <script>
+import Camera from './Camera.vue';
+
 
 export default {
+	components: {
+		camera: Camera,
+	},
 	data: function() {
 		return {
 			daters: null
