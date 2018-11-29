@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import * as OrbitControls from  '../THREE_Helpers/OrbitControls.js'
 import * as WEBGL from  '../THREE_Helpers/WebGl.js'
+import * as TessellateModifier from  '../THREE_Helpers/TessellateModifier.js'
 import TWEEN from '@tweenjs/tween.js';
 
 let container, camera, renderer, controls;
@@ -25,11 +26,10 @@ export default {
 	mounted() {
 		container = document.querySelector('.container');
         sceneL = new THREE.Scene();
-
         sceneL.background = new THREE.Color(0xff00ff);
         sceneR = new THREE.Scene();
         sceneR.background = new THREE.Color(0x8FBCD4);
-        camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 10);
+        camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 0);
         camera.position.set(2, 4, 7);
         controls = new THREE.OrbitControls(camera, container);
         this.initMeshes();
@@ -69,15 +69,55 @@ export default {
         }
     },
 	methods: {
+        initTextGeometry(text, font, size, detail) {
+            let geometry = new THREE.TextGeometry( text, {
+                font: font,
+                size: size,
+                height: 0.1,
+                curveSegments: detail,
+                bevelThickness: 0,
+                bevelSize: 0,
+                bevelEnabled: false
+            });
+            let tessellateModifier = new THREE.TessellateModifier( 20 );
+            for ( let i = 0; i < 6; i ++ ) {
+                tessellateModifier.modify( geometry );
+            }
+            let t = new THREE.BufferGeometry().fromGeometry( geometry );
+            t.computeBoundingBox();
+            t.computeVertexNormals();
+            t.center();
+            return t;
+            // return geometry;
+        },
         initMeshes() {
-            let geoB = new THREE.BoxBufferGeometry(2, 2, 2);
-            let matB = new THREE.MeshStandardMaterial({ color: 0x0000ff });
-            let meshB = new THREE.Mesh(geoB, matB);
-            sceneL.add(meshB);
-            let geoA = new THREE.IcosahedronBufferGeometry(1, 0);
-            let matA = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            let meshA = new THREE.Mesh(geoA, matA);
-            sceneR.add(meshA);
+            let loader = new THREE.FontLoader();
+            loader.load( '/SharpSansNo1Medium_Regular.json', ( font ) => {
+                let geomB = this.initTextGeometry('Yes', font, 3, 20);
+                var material = new THREE.MeshLambertMaterial( {color: 0x0000ff, reflectivity: 1} );
+                let meshB = new THREE.Mesh( geomB, material );
+                meshB.position.set(1, 0, 0);
+                sceneL.add(meshB);
+
+                let geomA = this.initTextGeometry('No', font, 3, 20);
+                let matA = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+                let meshA = new THREE.Mesh( geomA, matA );
+                sceneR.add(meshA);
+            //     let geomA = initTextGeometry('No', font, 20, 20);
+            //     let matA = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+            //     let meshA = new THREE.Points( geomA, matA );
+            //     sceneR.add(meshB);
+			} );	            
+            // let geoB = new THREE.BoxBufferGeometry(2, 2, 2);
+            
+            // let matB = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+            // let meshB = new THREE.Mesh(geoB, matB);
+            
+            // sceneL.add(meshB);
+            // let geoA = new THREE.IcosahedronBufferGeometry(1, 0);
+            // let matA = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            // let meshA = new THREE.Mesh(geoA, matA);
+            // sceneR.add(meshA);
         },
         initLights() {
             let light1 = new THREE.DirectionalLight();
@@ -125,27 +165,12 @@ export default {
                     if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
                         this.sliderVisible = false;
                         this.nextQuestion(this.sliderPos == window.innerWidth);
-
                         this.tweenSliderToPose(window.innerWidth / 2).then(() => {
                             this.sliderVisible = true;
                         });
                     }
                 });
-                // let currPose = {pose: this.sliderPos};
-                // let self = this;
-                // let tweenSliderPosition = new TWEEN.Tween(currPose)
-                // .to({'pose': endSliderPose}, 500)
-                // .easing(TWEEN.Easing.Quadratic.InOut)
-                // .onUpdate(() => {
-                //     self.sliderPos = currPose.pose;
-                // })
-                // .onComplete(function () {
-                //     if(self.sliderPos == 0 || self.sliderPos == window.innerWidth) {
-                //         self.sliderVisible = false;
-                //         self.nextQuestion(self.sliderPos == window.innerWidth);
-                //     }
-                // });
-                
+
                 this.sliderClicked = false;
             }
         },
@@ -154,9 +179,6 @@ export default {
             e.preventDefault();
             this.sliderMoved = true;
             this.sliderPos = e.pageX || e.touches[0].pageX;
-            //prevent the slider from being positioned outside the window bounds
-            // if (this.sliderPos < 0) this.sliderPos = 0;
-            // if (this.sliderPos > window.innerWidth) this.sliderPos = window.innerWidth;
         },
         nextQuestion(response) {
 			this.$store.commit('nextQuestion', response);
