@@ -1,5 +1,5 @@
 import firebase from 'firebase/app';
-
+import { storage } from '@firebase/storage';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
@@ -114,7 +114,22 @@ export const store = new Vuex.Store({
 					reject();
 				});
 			});
-		}
+		},
+		saveImage({commit}, image) {
+			commit('setLoading', true);
+			
+			//Remove img info to display properly in firebase 
+			let newBase64 = image.replace(/^data:image\/(png|jpeg);base64,/, '');
+			var metadata = {
+				contentType: 'image/jpeg',
+			};
+			firebase.storage().ref().child(`${Date.now()}.jpg`).putString(newBase64, 'base64', metadata).then(() => {
+				commit('setLoading', false);
+			}).catch(error => {
+				console.error(error);
+				commit('setLoading', false);
+			});
+		},
 	}
 });
 
