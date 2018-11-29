@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<h1 v-if="currentQuestion">{{currentQuestion.question}}</h1>
-		
+	<div class="ui-container">
+		<h1 class="center" v-if="currentQuestion">{{currentQuestion.question}}</h1>
 		<span>Question Index: {{questionIndex}} </span>
 		<br/>
 		<span>Tokens: {{tokens}} </span>
@@ -12,20 +12,18 @@
 		<br/>
 		<button v-if="questionIndex == -1" @click="restart">Restart</button>
 	</div>
+	<scene></scene>
+	</div>
 </template>
 
 <script>
 import Camera from './Camera.vue';
-
+import Scene from './Scene.vue';
 
 export default {
 	components: {
 		camera: Camera,
-	},
-	data: function() {
-		return {
-			daters: null
-		}
+		scene: Scene,
 	},
 	mounted() {
 		console.log('mounted');
@@ -54,3 +52,16 @@ export default {
 	}
 };
 </script>
+
+<style>
+.center {
+	text-align: center;
+}
+
+.ui-container {
+	z-index: 1;
+	position: absolute;
+    width: 100vw;
+}
+
+</style>
