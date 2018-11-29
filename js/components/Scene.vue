@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div v-if="sliderVisible" ref="slider" class="slider" @mousedown.stop="slideReady" @touchstart.stop="slideReady"></div>
+        <div v-if="sliderVisible && questionIndex != -1" ref="slider" class="slider" @mousedown.stop="slideReady" @touchstart.stop="slideReady"></div>
     </div>
 </template>
 
@@ -63,7 +63,9 @@ export default {
     watch : {
         sliderPos(val) {
             let slider = this.$refs.slider;
-            slider.style.left = this.sliderPos - (slider.offsetWidth / 2) + "px";
+            if(slider) {
+                slider.style.left = this.sliderPos - (slider.offsetWidth / 2) + "px";
+            }
         }
     },
 	methods: {
@@ -118,20 +120,32 @@ export default {
                     endSliderPose = window.innerWidth / 2;
                 }
                 console.log(endSliderPose);
-                let currPose = {pose: this.sliderPos};
-                let self = this;
-                let tweenSliderPosition = new TWEEN.Tween(currPose)
-                .to({'pose': endSliderPose}, 500)
-                .easing(TWEEN.Easing.Quadratic.InOut)
-                .onUpdate(() => {
-                    self.sliderPos = currPose.pose;
-                })
-                .onComplete(function () {
-                    if(self.sliderPos == 0 || self.sliderPos == window.innerWidth) {
-                        self.sliderVisible = false;
+                this.tweenSliderToPose(endSliderPose)
+                .then(() => {
+                    if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
+                        this.sliderVisible = false;
+                        this.nextQuestion(this.sliderPos == window.innerWidth);
+
+                        this.tweenSliderToPose(window.innerWidth / 2).then(() => {
+                            this.sliderVisible = true;
+                        });
                     }
                 });
-                tweenSliderPosition.start();
+                // let currPose = {pose: this.sliderPos};
+                // let self = this;
+                // let tweenSliderPosition = new TWEEN.Tween(currPose)
+                // .to({'pose': endSliderPose}, 500)
+                // .easing(TWEEN.Easing.Quadratic.InOut)
+                // .onUpdate(() => {
+                //     self.sliderPos = currPose.pose;
+                // })
+                // .onComplete(function () {
+                //     if(self.sliderPos == 0 || self.sliderPos == window.innerWidth) {
+                //         self.sliderVisible = false;
+                //         self.nextQuestion(self.sliderPos == window.innerWidth);
+                //     }
+                // });
+                
                 this.sliderClicked = false;
             }
         },
@@ -143,6 +157,21 @@ export default {
             //prevent the slider from being positioned outside the window bounds
             // if (this.sliderPos < 0) this.sliderPos = 0;
             // if (this.sliderPos > window.innerWidth) this.sliderPos = window.innerWidth;
+        },
+        nextQuestion(response) {
+			this.$store.commit('nextQuestion', response);
+        },
+        tweenSliderToPose(endPose) {
+            let self = this;
+            return new Promise(function (resolve, reject) {
+                let currPose = {pose: self.sliderPos};
+                let tweenSliderPosition = new TWEEN.Tween(currPose)
+                .to({'pose': endPose}, 500)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => self.sliderPos = currPose.pose)
+                .onComplete(()  => resolve());
+                tweenSliderPosition.start();
+            });
         }
 	},
 	destroyed() {

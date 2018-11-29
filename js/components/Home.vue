@@ -7,8 +7,8 @@
 		<span>Tokens: {{tokens}} </span>
 		<br/>
 		<camera v-if="questionIndex != -1"></camera>
-		<button v-if="questionIndex != -1" @click="nextQuestion(false)">No</button>
-		<button v-if="questionIndex != -1" @click="nextQuestion(true)">Yes</button>
+		<!-- <button v-if="questionIndex != -1" @click="nextQuestion(false)">No</button>
+		<button v-if="questionIndex != -1" @click="nextQuestion(true)">Yes</button> -->
 		<br/>
 		<button v-if="questionIndex == -1" @click="restart">Restart</button>
 	</div>
