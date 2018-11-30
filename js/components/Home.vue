@@ -4,7 +4,7 @@
 		<h1 class="center" v-if="currentQuestion">{{currentQuestion.question}}</h1>
 		<!-- <span>Question Index: {{questionIndex}} </span> -->
 		<br/>
-		<span>Tokens: {{tokens}} </span>
+		<!-- <span>Tokens: {{tokens}} </span> -->
 		<br/>
 		<camera v-if="questionIndex != -1"></camera>
 		<!-- <button v-if="questionIndex != -1" @click="nextQuestion(false)">No</button>

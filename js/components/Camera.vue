@@ -2,10 +2,10 @@
     <div>
         <div  class="camera">
             <video style="display: none;" ref="video">Video stream not available.</video>
-            <button @click.stop="captureImage" ref="startbutton">Take photo</button>
+            <!-- <button @click.stop="captureImage" ref="startbutton">Take photo</button> -->
         </div>
         <canvas style="display: none;" ref="canvas"></canvas>
-        <canvas  ref="webglCanvas"></canvas>
+        <canvas style="display: none;" ref="webglCanvas"></canvas>
         <img id='shader-img' style="display: none;" ref="photo" alt="The screen capture will appear in this box.">
     </div>
 </template>
@@ -22,7 +22,7 @@ export default {
             height: 0,
             streaming: false
 		}
-	},
+    },
 	mounted() {
         this.$nextTick(function () {
             const videoEl = this.$refs.video;
@@ -34,7 +34,6 @@ export default {
                 .catch(function(err) {
                     console.error("An error occurred! " + err);
                 });
-
             const canvasEl = this.$refs.canvas;
             const webglEl = this.$refs.webglCanvas;
             videoEl.addEventListener('canplay', (ev) => {
@@ -52,7 +51,23 @@ export default {
 
         });
         console.log('mounted');
-	},
+    },
+    computed : {
+        captureImageToggle() {
+            return this.$store.state.captureImageToggle;
+            // return false;
+        }
+    },
+    watch : {
+        captureImageToggle(val) {
+            console.log(val + 'should capture image');
+            this.captureImage();
+            // if(val) {
+            //     this.captureImage();
+            // }
+        }
+    },
+
 	// computed: {
 	// 	currentQuestion() {
 	// 		return this.$store.getters.getCurrentQuestion;
@@ -70,6 +85,10 @@ export default {
                 context.drawImage(videoEl, 0, 0, this.width, this.height);
                 shaderPass(canvasEl, webglEl);
                 let data = webglEl.toDataURL('image/jpeg');
+                let imageData = context.getImageData(0, 0, this.width, this.height);
+                console.log('image data outside state')
+                console.log(imageData);
+                this.$store.commit('setImageData', imageData);
                 this.$refs.photo.setAttribute('src', data);
                 this.$store.dispatch('saveImage', data);
                 // HERMITE.resize_image('shader-img', this.width/2, this.height/2);

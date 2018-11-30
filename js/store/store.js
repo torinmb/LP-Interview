@@ -9,6 +9,8 @@ export const store = new Vuex.Store({
 
 	state: {
 		questions: [],
+		imageData: null,
+		captureImageToggle: false,
 		currentQuestionIndex: 0,
 		tokens: {},
 		loading : false
@@ -25,11 +27,17 @@ export const store = new Vuex.Store({
 		},
 		getTokens: state => {
 			return state.tokens;
+		},
+		getImageData: state => {
+			return state.imageData;
 		}
 	},
 	mutations: {
 		setLoading(state, val) {
 			state.loading = val;
+		},
+		setImageData(state, val) {
+			state.imageData = val;
 		},
 		setCurrentQuestionIndex(state, val) {
 			state.currentQuestionIndex = val;
@@ -134,6 +142,8 @@ export const store = new Vuex.Store({
 });
 
 store.subscribe((mutation, state) => {
+	let tempState = Object.assign({}, state);
+	tempState.imageData = null; //image data is too large for local storage
 	// Store the state object as a JSON string
-	localStorage.setItem('store', JSON.stringify(state));
+	localStorage.setItem('store', JSON.stringify(tempState));
 });

@@ -48,6 +48,7 @@ export default {
         this.sceneIsInitialized = true;
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.toneMappingExposure = 0.004;
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setScissorTest(true);
@@ -114,17 +115,21 @@ export default {
                 console.log(endSliderPose);
                 if(endSliderPose >= 0.75){
                     endSliderPose = window.innerWidth;
+                    // this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
                     this.$refs.textImage.setYesPointsDestinationToImage();
                 } else if(endSliderPose <= 0.25) {
                     endSliderPose = 0;
+                    // this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
                     this.$refs.textImage.setNoPointsDestinationToImage();
                 } else {
                     endSliderPose = window.innerWidth / 2;
                 }
-
                 this.tweenSliderToPose(endSliderPose)
                 .then(() => {
                     if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
+                        this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
+                        console.log('this.$store.state.imageData');
+                        console.log(this.$store.state.imageData);
                         this.sliderVisible = false;
                         if(this.sliderPos == window.innerWidth) {
                             this.$refs.textImage.animateYes();
