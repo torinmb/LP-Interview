@@ -48,10 +48,11 @@ export const store = new Vuex.Store({
 		setTokens(state, tokens) {
 			let stateTokens = Object.keys(state.tokens);
 			tokens.forEach(token => {
-				if (!(token in stateTokens)) {
+				if (!stateTokens.includes(token)) {
 					state.tokens[token] = 0;
 				}
 			});
+			state.tokens = Object.assign({}, state.tokens);
 		},
 		restart(state) {
 			state.currentQuestionIndex = 0;

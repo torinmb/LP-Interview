@@ -127,10 +127,9 @@ export default {
                 this.tweenSliderToPose(endSliderPose)
                 .then(() => {
                     if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
-                        this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
-                        console.log('this.$store.state.imageData');
-                        console.log(this.$store.state.imageData);
                         this.sliderVisible = false;
+                        this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
+                        
                         if(this.sliderPos == window.innerWidth) {
                             this.$refs.textImage.animateYes();
                         } else {
@@ -142,7 +141,6 @@ export default {
                             } else {
                                 this.$refs.textImage.setNoPointsDestinationToText();
                             }
-
                             setTimeout(() => {
                                 this.$refs.textImage.stopYesAnimation();
                                 this.$refs.textImage.stopNoAnimation();
