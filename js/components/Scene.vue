@@ -41,8 +41,9 @@ export default {
         
         sceneR.background = new THREE.Color(0x7ACB71);
         camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 0);
-        camera.position.set(0, -2, 7);
         controls = new THREE.OrbitControls(camera, container);
+        camera.position.set(0, 0, 10);
+        controls.update();
         window.controls = controls;
         this.sceneIsInitialized = true;
 
@@ -144,7 +145,7 @@ export default {
                                 this.tweenSliderToPose(window.innerWidth / 2).then(() => {
                                     this.sliderVisible = true;
                                 });
-                            }, 5000);
+                            }, 4000);
                         }, 5000);
                     }
                 });

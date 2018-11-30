@@ -116,6 +116,8 @@ export default {
                 let geomB = this.initTextGeometry('Yes', font, 3, 20);
                 let material = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true });
                 this.yesText = new THREE.Mesh( geomB, material );
+                this.yesText.renderOrder = 999;
+                this.yesText.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
                 this.yesText.position.set(1, 0, -0.05);
                 window.sceneL.add(this.yesText);
                 this.yesPoints = this.initParticles({width: 420, height: 315}, yesVerticies, 0xffffff, 1);
@@ -125,6 +127,8 @@ export default {
                 let geomA = this.initTextGeometry('No', font, 3, 20);
                 let matA = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true });
                 this.noText = new THREE.Mesh( geomA, matA );
+                this.noText.renderOrder = 999;
+                this.noText.onBeforeRender = function( renderer ) { renderer.clearDepth(); };
                 this.noText.position.set(0, 0, -0.05);
                 window.sceneR.add(this.noText);
                 this.noPoints = this.initParticles({width: 420, height: 315}, noVerticies, 0x000000);
