@@ -2,7 +2,7 @@
 	<div>
 	<div class="ui-container">
 		<h1 class="center" v-if="currentQuestion">{{currentQuestion.question}}</h1>
-		<span>Question Index: {{questionIndex}} </span>
+		<!-- <span>Question Index: {{questionIndex}} </span> -->
 		<br/>
 		<span>Tokens: {{tokens}} </span>
 		<br/>
@@ -54,6 +54,10 @@ export default {
 </script>
 
 <style>
+
+h1 {
+	color: white;
+}
 .center {
 	text-align: center;
 }
