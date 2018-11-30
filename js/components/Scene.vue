@@ -21,15 +21,18 @@ export default {
             sliderPos: window.innerWidth / 2,
             sliderMoved: false,
             sliderClicked: false,
-            sliderVisible: true
+            sliderVisible: true,
+            updateYesPoints: false,
+            updateNoPoints: false,
+            imagePointsPosition: []
 		}
 	},
 	mounted() {
 		container = document.querySelector('.container');
         sceneL = new THREE.Scene();
-        sceneL.background = new THREE.Color(0x54B2AC);
+        sceneL.background = new THREE.Color(0x3F4C78);
         sceneR = new THREE.Scene();
-        sceneR.background = new THREE.Color(0xFF884D);
+        sceneR.background = new THREE.Color(0x7ACB71);
         camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 0);
         camera.position.set(2, 4, 7);
         controls = new THREE.OrbitControls(camera, container);
@@ -43,6 +46,15 @@ export default {
         renderer.setAnimationLoop(() => {
             this.render();
         });
+        let self = this;
+        document.body.onkeyup = function (e) { //animate the drawing when space bar is pressed
+			if (e.keyCode == 32) {
+                e.preventDefault();
+                console.log(self.extrude);
+                console.log('keyDown');
+				self.extrude = !self.extrude;
+			}
+		}
 
         window.addEventListener('mouseup', this.slideFinish);
         window.addEventListener('touchend', this.slideFinish);
@@ -70,6 +82,27 @@ export default {
         }
     },
 	methods: {
+        updatePoints(mesh) {
+            let tempColor = new THREE.Color();
+            for (let i = 0; i < mesh.geometry.vertices.length; i++) {
+                let point = mesh.geometry.vertices[i];
+                if (this.extrude) {
+                    point.destination.z = tempColor.getHSL(mesh.geometry.colors[i]).l * 5 - 5 ;
+                    // point.speed = Math.random() / 800 + params.speed;
+                    // point.speed = Math.random() / 1000 + 0.1;
+                } else {
+                    point.destination.z = 0;
+                    // point.speed = Math.random() / 400 + params.speed;
+                }
+                point.lerp(point.destination, point.speed);
+            }
+        },
+        resetPointDestination(mesh, destinationVerticies) {
+            for (let i = 0; i < mesh.geometry.vertices.length; i++) {
+                let point = mesh.geometry.vertices[i];
+                point.destination = destinationVerticies[i];
+            }
+        },
         initTextGeometry(text, font, size, detail) {
             let geometry = new THREE.TextGeometry( text, {
                 font: font,
@@ -95,25 +128,25 @@ export default {
             let loader = new THREE.FontLoader();
             loader.load( '/SharpSansNo1Medium_Regular.json', ( font ) => {
                 let geomB = this.initTextGeometry('Yes', font, 3, 20);
-                let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-                let meshB = new THREE.Mesh( geomB, material );
-                meshB.position.set(1, 0, -0.05);
-                sceneL.add(meshB);
-                this.yesPoints = this.initParticles({width: 420, height: 315}, yesVerticies, 0xffffff);
+                let material = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true });
+                this.yesText = new THREE.Mesh( geomB, material );
+                this.yesText.position.set(1, 0, -0.05);
+                sceneL.add(this.yesText);
+                this.yesPoints = this.initParticles({width: 420, height: 315}, yesVerticies, 0xffffff, 1);
                 this.yesPoints.position.set(1, 0, 0);
                 sceneL.add(this.yesPoints);
                 
                 let geomA = this.initTextGeometry('No', font, 3, 20);
-                let matA = new THREE.MeshStandardMaterial({ color: 0x000000 });
-                let meshA = new THREE.Mesh( geomA, matA );
-                meshA.position.set(0, 0, -0.05);
-                sceneR.add(meshA);
+                let matA = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true });
+                this.noText = new THREE.Mesh( geomA, matA );
+                this.noText.position.set(0, 0, -0.05);
+                sceneR.add(this.noText);
                 this.noPoints = this.initParticles({width: 420, height: 315}, noVerticies, 0x000000);
                 sceneR.add(this.noPoints);
                 // console.log(pointsB);
 			});
         },
-        initParticles(imageData, vertices, color) {
+        initParticles(imageData, vertices, color, offsetX = 0) {
             let geometry = new THREE.Geometry();
             let material = new THREE.PointsMaterial({
                 size: 1,
@@ -123,7 +156,6 @@ export default {
             });
             const raycaster = new THREE.Raycaster();
             const rayCasterVertex = new THREE.Vector3(0,0,1);
-            
             // let boundingBox = mesh.geometry.boundingBox;
             // console.log(mesh.geometry);
             let index = 0;
@@ -147,13 +179,15 @@ export default {
                         }
                     }
                     */
-                   let vertex = vertices[index];
-                    vertex.destination = {
-                        x: x - imageData.width / 2,
-                        y: -y + imageData.height / 2,
+                   let vertex = new THREE.Vector3(vertices[index].x, vertices[index].y, vertices[index].z);
+                //    let vertex = vertices[index];
+                    let destination = {
+                        x: (x - imageData.width / 2)/imageData.width * 4 - offsetX,
+                        y: (-y + imageData.height / 2)/imageData.height * 4,
                         z: 0
                     };
-
+                    vertex.destination = destination;
+                    this.imagePointsPosition.push(destination);
                     vertex.speed = Math.random() / 400 + 0.015;
                     geometry.vertices.push(vertex);
                     let imgIndex = (x * 4 + y * 4 * imageData.width);
@@ -163,7 +197,6 @@ export default {
                     index++;
                 }
             }
-            console.log(geometry);
             let particles = new THREE.Points(geometry, material);
             return particles;
         },
@@ -178,6 +211,14 @@ export default {
             sceneR.add(light2.clone());
         },
         render(time) {
+            if(this.updateYesPoints) {
+                this.updatePoints(this.yesPoints);
+                this.yesPoints.geometry.verticesNeedUpdate = true;
+            }
+            if(this.updateNoPoints) {
+                this.updatePoints(this.noPoints);
+                this.noPoints.geometry.verticesNeedUpdate = true;
+            }
             renderer.setScissor(0, 0, this.sliderPos, window.innerHeight);
             renderer.render(sceneL, camera);
             renderer.setScissor(this.sliderPos, 0, window.innerWidth, window.innerHeight);
@@ -202,8 +243,10 @@ export default {
                 console.log(endSliderPose);
                 if(endSliderPose >= 0.75){
                     endSliderPose = window.innerWidth;
+                    this.resetPointDestination(this.yesPoints, this.imagePointsPosition);
                 } else if(endSliderPose <= 0.25) {
                     endSliderPose = 0;
+                    this.resetPointDestination(this.noPoints, this.imagePointsPosition);
                 } else {
                     endSliderPose = window.innerWidth / 2;
                 }
@@ -212,10 +255,33 @@ export default {
                 .then(() => {
                     if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
                         this.sliderVisible = false;
-                        this.nextQuestion(this.sliderPos == window.innerWidth);
-                        this.tweenSliderToPose(window.innerWidth / 2).then(() => {
-                            this.sliderVisible = true;
-                        });
+                        if(this.sliderPos == window.innerWidth) {
+                            this.updateYesPoints = true;
+                            this.yesText.material.opacity = 0;
+                        } else {
+                            this.updateNoPoints = true;
+                            this.noText.material.opacity = 0;
+                        }
+                        setTimeout(() => {
+                            if(this.sliderPos == window.innerWidth) {
+                                this.resetPointDestination(this.yesPoints, yesVerticies);
+                            } else {
+                                this.resetPointDestination(this.noPoints, noVerticies);
+                            }
+
+                            setTimeout(() => {
+                                this.updateYesPoints = false;
+                                this.updateNoPoints = false;
+                                this.noText.material.opacity = 1;
+                                this.yesText.material.opacity = 1;
+                                this.nextQuestion(this.sliderPos == window.innerWidth);
+                                this.tweenSliderToPose(window.innerWidth / 2).then(() => {
+                                    this.sliderVisible = true;
+                                });
+                            }, 5000);
+                            
+                        }, 5000);
+
                     }
                 });
 
@@ -273,7 +339,7 @@ body {
     cursor: ew-resize;
     width: 40px;
     height: 40px;
-    background-color: #2196F3;
+    background-color: #ffffff;
     opacity: 0.7;
     border-radius: 50%;
     top: calc(50% - 20px);
