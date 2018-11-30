@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import * as OrbitControls from  '../THREE_Helpers/OrbitControls.js'
 import * as WEBGL from  '../THREE_Helpers/WebGl.js'
 import * as TessellateModifier from  '../THREE_Helpers/TessellateModifier.js'
+import {noVerticies, yesVerticies} from  '../THREE_Helpers/TextVerticies.js'
 import TWEEN from '@tweenjs/tween.js';
 
 let container, camera, renderer, controls;
@@ -26,9 +27,9 @@ export default {
 	mounted() {
 		container = document.querySelector('.container');
         sceneL = new THREE.Scene();
-        sceneL.background = new THREE.Color(0xff00ff);
+        sceneL.background = new THREE.Color(0x54B2AC);
         sceneR = new THREE.Scene();
-        sceneR.background = new THREE.Color(0x8FBCD4);
+        sceneR.background = new THREE.Color(0xFF884D);
         camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 0);
         camera.position.set(2, 4, 7);
         controls = new THREE.OrbitControls(camera, container);
@@ -73,16 +74,16 @@ export default {
             let geometry = new THREE.TextGeometry( text, {
                 font: font,
                 size: size,
-                height: 0.1,
+                height: 0.12,
                 curveSegments: detail,
                 bevelThickness: 0,
                 bevelSize: 0,
                 bevelEnabled: false
             });
-            let tessellateModifier = new THREE.TessellateModifier( 20 );
-            for ( let i = 0; i < 6; i ++ ) {
-                tessellateModifier.modify( geometry );
-            }
+            // let tessellateModifier = new THREE.TessellateModifier( 20 );
+            // for ( let i = 0; i < 6; i ++ ) {
+            //     tessellateModifier.modify( geometry );
+            // }
             let t = new THREE.BufferGeometry().fromGeometry( geometry );
             t.computeBoundingBox();
             t.computeVertexNormals();
@@ -94,30 +95,77 @@ export default {
             let loader = new THREE.FontLoader();
             loader.load( '/SharpSansNo1Medium_Regular.json', ( font ) => {
                 let geomB = this.initTextGeometry('Yes', font, 3, 20);
-                var material = new THREE.MeshLambertMaterial( {color: 0x0000ff, reflectivity: 1} );
+                let material = new THREE.MeshStandardMaterial({ color: 0xffffff });
                 let meshB = new THREE.Mesh( geomB, material );
-                meshB.position.set(1, 0, 0);
+                meshB.position.set(1, 0, -0.05);
                 sceneL.add(meshB);
-
+                this.yesPoints = this.initParticles({width: 420, height: 315}, yesVerticies, 0xffffff);
+                this.yesPoints.position.set(1, 0, 0);
+                sceneL.add(this.yesPoints);
+                
                 let geomA = this.initTextGeometry('No', font, 3, 20);
-                let matA = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+                let matA = new THREE.MeshStandardMaterial({ color: 0x000000 });
                 let meshA = new THREE.Mesh( geomA, matA );
+                meshA.position.set(0, 0, -0.05);
                 sceneR.add(meshA);
-            //     let geomA = initTextGeometry('No', font, 20, 20);
-            //     let matA = new THREE.MeshStandardMaterial({ color: 0x0000ff });
-            //     let meshA = new THREE.Points( geomA, matA );
-            //     sceneR.add(meshB);
-			} );	            
-            // let geoB = new THREE.BoxBufferGeometry(2, 2, 2);
+                this.noPoints = this.initParticles({width: 420, height: 315}, noVerticies, 0x000000);
+                sceneR.add(this.noPoints);
+                // console.log(pointsB);
+			});
+        },
+        initParticles(imageData, vertices, color) {
+            let geometry = new THREE.Geometry();
+            let material = new THREE.PointsMaterial({
+                size: 1,
+                //map: this.tex,
+                vertexColors: THREE.VertexColors,
+                sizeAttenuation: false
+            });
+            const raycaster = new THREE.Raycaster();
+            const rayCasterVertex = new THREE.Vector3(0,0,1);
             
-            // let matB = new THREE.MeshStandardMaterial({ color: 0x0000ff });
-            // let meshB = new THREE.Mesh(geoB, matB);
-            
-            // sceneL.add(meshB);
-            // let geoA = new THREE.IcosahedronBufferGeometry(1, 0);
-            // let matA = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            // let meshA = new THREE.Mesh(geoA, matA);
-            // sceneR.add(meshA);
+            // let boundingBox = mesh.geometry.boundingBox;
+            // console.log(mesh.geometry);
+            let index = 0;
+            for (let y = 0, y2 = imageData.height; y < y2; y += 2) {
+                for (let x = 0, x2 = imageData.width; x < x2; x += 2) {
+                    /*
+                    let vertex = new THREE.Vector3();
+                    vertex.x = Math.random() * boundingBox.max.x*2 - boundingBox.max.x + 1.0;
+                    vertex.y = Math.random() * boundingBox.max.y*2 - boundingBox.max.y;
+                    vertex.z = Math.random() * boundingBox.max.z*2 - boundingBox.max.z*2;
+                    let particleIsOutsideMesh = true;
+                    while(particleIsOutsideMesh) {
+                        raycaster.set(vertex, rayCasterVertex);
+                        const intersects = raycaster.intersectObject(mesh)
+                        if(intersects.length % 2 === 1) { // Points is in objet
+                            particleIsOutsideMesh = false;
+                        } else {
+                            vertex.x = Math.random() * boundingBox.max.x*2 - boundingBox.max.x;
+                            vertex.y = Math.random() * boundingBox.max.y*2 - boundingBox.max.y;
+                            vertex.z = Math.random() * boundingBox.max.z*2 - boundingBox.max.z*2;
+                        }
+                    }
+                    */
+                   let vertex = vertices[index];
+                    vertex.destination = {
+                        x: x - imageData.width / 2,
+                        y: -y + imageData.height / 2,
+                        z: 0
+                    };
+
+                    vertex.speed = Math.random() / 400 + 0.015;
+                    geometry.vertices.push(vertex);
+                    let imgIndex = (x * 4 + y * 4 * imageData.width);
+                    // let color = new THREE.Color(imageData.data[imgIndex], imageData.data[imgIndex + 1], imageData.data[imgIndex + 2]);
+                    // geometry.colors[index] = color;
+                    geometry.colors[index] = new THREE.Color(color);
+                    index++;
+                }
+            }
+            console.log(geometry);
+            let particles = new THREE.Points(geometry, material);
+            return particles;
         },
         initLights() {
             let light1 = new THREE.DirectionalLight();
