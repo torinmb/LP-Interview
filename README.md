@@ -1,4 +1,6 @@
 # Local Projects Interview
+![forthebadge](https://forthebadge.com/images/badges/made-with-vue.svg)
+![forthebadge](https://forthebadge.com/images/badges/made-with-crayons.svg)
 
 Requirements:
 
@@ -18,7 +20,3 @@ yarn watch
 
 # build / bundle files for deployment
 yarn build
-
-# deploy to appengine
-yarn deploy
-```
