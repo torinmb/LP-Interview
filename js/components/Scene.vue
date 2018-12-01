@@ -26,6 +26,8 @@ export default {
             sliderMoved: false,
             sliderClicked: false,
             sliderVisible: true,
+            renderExposure: 1.0,
+            updatingPoints: false
 		}
     },
     components :{
@@ -48,7 +50,7 @@ export default {
         this.sceneIsInitialized = true;
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.toneMappingExposure = 0.004;
+        
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setScissorTest(true);
@@ -92,6 +94,12 @@ export default {
         },
         render(time) {
             this.$refs.textImage.update();
+            if(this.updatingPoints) {
+                renderer.toneMappingExposure = 0.004;
+            } else {
+                renderer.toneMappingExposure = 1.0;
+            }
+            // renderer.toneMappingExposure = this.renderExposure;
             renderer.setScissor(0, 0, this.sliderPos, window.innerHeight);
             renderer.render(sceneL, camera);
             renderer.setScissor(this.sliderPos, 0, window.innerWidth, window.innerHeight);
@@ -124,14 +132,18 @@ export default {
                 } else {
                     endSliderPose = window.innerWidth / 2;
                 }
-                this.tweenSliderToPose(endSliderPose)
+                this.tweenObjectToValue(this.sliderPos, endSliderPose, (currVal) => this.sliderPos = currVal)
                 .then(() => {
                     if(this.sliderPos == 0 || this.sliderPos == window.innerWidth) {
+                        this.updatingPoints = true;
+                        this.tweenObjectToValue(this.renderExposure, 0.004, (currVal) => this.renderExposure = currVal);
                         this.sliderVisible = false;
                         this.$store.state.captureImageToggle = this.$store.state.captureImageToggle? false: true;
                         
                         if(this.sliderPos == window.innerWidth) {
+                            
                             this.$refs.textImage.animateYes();
+                            
                         } else {
                             this.$refs.textImage.animateNo();
                         }
@@ -142,10 +154,15 @@ export default {
                                 this.$refs.textImage.setNoPointsDestinationToText();
                             }
                             setTimeout(() => {
+                                if(this.sliderPos == window.innerWidth) {
+                                    this.updatingPoints = false;
+                                }
+                                this.tweenObjectToValue(this.renderExposure, 1.0, (currVal) => this.renderExposure = currVal);
                                 this.$refs.textImage.stopYesAnimation();
                                 this.$refs.textImage.stopNoAnimation();
                                 this.nextQuestion(this.sliderPos == window.innerWidth);
-                                this.tweenSliderToPose(window.innerWidth / 2).then(() => {
+                                this.tweenObjectToValue(this.sliderPos, window.innerWidth / 2, (currVal) => this.sliderPos = currVal).then(() => {
+                                    this.updatingPoints = false;
                                     this.sliderVisible = true;
                                 });
                             }, 4000);
@@ -175,7 +192,23 @@ export default {
                 .onComplete(()  => resolve());
                 tweenSliderPosition.start();
             });
-        }
+        },
+        tweenObjectToValue(obj, endValue, updateCallback, time = 500) {
+            return new Promise(function (resolve, reject) {
+                let currState = {state: obj};
+                let tweenSliderPosition = new TWEEN.Tween(currState)
+                .to({'state': endValue}, time)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    updateCallback(currState.state);
+                    // console.log(obj);
+                    // console.log(currState);
+                    // obj = currState.state
+                    })
+                .onComplete(()  => resolve());
+                tweenSliderPosition.start();
+            });
+        },
 	},
 	destroyed() {
 		console.log('destroyed')
